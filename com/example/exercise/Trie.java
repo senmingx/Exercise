@@ -44,6 +44,11 @@ public class Trie {
         return prefixNode != null && hasAnyWord(prefixNode);
     }
 
+    public void delete(String word) {
+        TrieNode node = getPrefix(word);
+        node.isWord = false;
+    }
+
     private boolean hasAnyWord(TrieNode prefixNode) {
         // Base case: Found one word
         if (prefixNode.isWord) {
