@@ -14,47 +14,74 @@ public class WordSearchII {
     public List<String> findWords(char[][] board, String[] words) {
         int m = board.length, n = board[0].length;
         List<String> wordsFound = new ArrayList<>();
+        TrieNode root = new TrieNode();
 
-        // 1. Add all words to trie
-        // 2. Start with each cell, find in trie startWith prefix to find words
-        //    Each time a word is found, delete it from trie to avoid duplicate
+        // 1. Construct trie with all words
+        // 2. Start with each cell, DFS from board and trie to find words, once a word is found, remove it from trie
 
-        Trie trie = new Trie();
         for (String word : words) {
-            trie.insert(word);
+            TrieNode parent = root;
+            for (int i = 0; i < word.length(); i++) {
+                char cur = word.charAt(i);
+                TrieNode child = parent.children.get(cur);
+                if (child == null) {
+                    child = new TrieNode();
+                    parent.children.put(cur, child);
+                }
+                parent = child;
+
+                // Mark word in last char
+                if (i == word.length() - 1) {
+                    parent.word = word;
+                }
+            }
         }
 
         for (int row = 0; row < m; row++) {
             for (int col = 0; col < n; col++) {
-                StringBuilder sb = new StringBuilder();
-                findWords(board, row, col, sb, trie, wordsFound);
+                if (root.children.containsKey(board[row][col])) {
+                    findWords(board, row, col, root, wordsFound);
+                }
             }
         }
 
         return wordsFound;
     }
 
-    private void findWords(char[][] board, int row, int col, StringBuilder sb, Trie trie, List<String> wordsFound) {
-        if (trie.search(sb.toString())) {
-            wordsFound.add(sb.toString());
-            trie.delete(sb.toString());
-        }
-        int m = board.length, n = board[0].length;
-        if (row < 0 || row >= m || col < 0 || col >= n || board[row][col] == '*' || !trie.startsWith(sb.toString())) {
-            return;
+    private void findWords(char[][] board, int row, int col, TrieNode parent, List<String> wordsFound) {
+        char cur = board[row][col];
+        TrieNode curNode = parent.children.get(cur);
+
+        if (curNode.word != null) {
+            wordsFound.add(curNode.word);
+            curNode.word = null;
         }
 
-        char cur = board[row][col];
-        sb.append(cur);
+        int m = board.length, n = board[0].length;
         board[row][col] = '*';
 
         for (int[] dir : DIRS) {
-            int nextRow = row + dir[0];
-            int nextCol = col + dir[1];
-            findWords(board, nextRow, nextCol, sb, trie, wordsFound);
+            int nextRow = row + dir[0], nextCol = col + dir[1];
+            if (nextRow >= 0 && nextRow < m && nextCol >= 0 && nextCol < n
+                    && curNode.children.containsKey(board[nextRow][nextCol])) {
+                findWords(board, nextRow, nextCol, curNode, wordsFound);
+            }
         }
 
-        sb.deleteCharAt(sb.length() - 1);
         board[row][col] = cur;
+
+        // Remove leaf node, because either word is found or word does not exist in board
+        if (curNode.children == null) {
+            parent.children.remove(curNode);
+        }
+    }
+
+    private class TrieNode {
+        String word;
+        Map<Character, TrieNode> children;
+
+        public TrieNode() {
+            children = new HashMap<>();
+        }
     }
 }
