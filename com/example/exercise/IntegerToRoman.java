@@ -7,27 +7,19 @@ public class IntegerToRoman {
 
     public String intToRoman(int num) {
         StringBuilder roman = new StringBuilder();
+
+        int index = VALUES.length - 1;
         while (num > 0) {
             // 1. Find the index of greatest smaller than or equal to num in VALUES
             // 2. Append SYMBOLS[index] to roman, num -= VALUES[index]
-            int greatestSmallerOrEqualIndex = greatestSmallerOrEqualIndex(num);
-            roman.append(SYMBOLS[greatestSmallerOrEqualIndex]);
-            num -= VALUES[greatestSmallerOrEqualIndex];
-        }
-        return roman.toString();
-    }
-
-    private int greatestSmallerOrEqualIndex(int num) {
-        int start = 0, end = VALUES.length - 1;
-        while (start + 1 < end) {
-            int mid = start + (end - start) / 2;
-            if (VALUES[mid] <= num) {
-                start = mid;
+            if (VALUES[index] > num) {
+                index--;
             } else {
-                end = mid;
+                roman.append(SYMBOLS[index]);
+                num -= VALUES[index];
             }
         }
-        return VALUES[end] <= num ? end : start;
+        return roman.toString();
     }
 
     public static void main(String[] args) {
